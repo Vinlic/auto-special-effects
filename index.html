@@ -1,0 +1,53 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html" charset="utf-8">
+        <title>特效合成DEMO</title>
+    </head>
+    <body>
+        <canvas id="videoBox" style='background:url(./test.jpg) no-repeat;background-size: 100%'>当前浏览器不支持显示</canvas>
+        <video id="videoObject" src=''></video>
+        <input type='file' id='videoSelector'>
+        <img id='videoBackground' src='./test.jpg' style="display:none"/>
+        <script>
+            var canvasElement = document.getElementById('videoBox');
+            var canvas = canvasElement.getContext('2d');
+            var video = document.getElementById('videoObject');
+            var videoSelector = document.getElementById('videoSelector');
+            var videoBackground = document.getElementById('videoBackground');
+            videoSelector.onchange = function() {
+                var file = videoSelector.files[0];
+                var url = URL.createObjectURL(file);
+                console.log(url);
+                video.src = url;
+            }
+            video.oncanplay = function() {
+                video.play();
+                var width = video.videoWidth;
+                var height = video.videoHeight;
+                canvasElement.width = width;
+                canvasElement.height = height;
+                setInterval(() => {
+                    if (video.paused || video.ended)
+                        return;
+                    canvas.drawImage(video, 0, 0, width, height);
+                    var data = canvas.getImageData(0, 0, width, height);
+                    // canvas.drawImage(videoBackground, 0, 0, width, height);
+                    // var _data = canvas.getImageData(videoBackground, 0, 0, width, height);
+                    var len = data.data.length / 4;
+                    for (let i = 0; i < len; i++) {
+                        let r = data.data[i * 4 + 0],
+                            g = data.data[i * 4 + 1],
+                            b = data.data[i * 4 + 2];
+                        if (r <= 90 && r > 0 
+                        && g >= 80 && g < 180
+                        && b >= 0 && b < 80) {
+                            //console.log('替换')
+                            data.data[i * 4 + 3] = 0;
+                        }
+                    }
+                    canvas.putImageData(data, 0, 0);
+                }, 50);
+            }
+        </script>
+    </body>
+</html>
